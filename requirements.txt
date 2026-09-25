@@ -1,0 +1,19 @@
+# Core Numerical & Optimization
+numpy>=1.26.0
+pandas>=2.2.0
+scipy>=1.12.0
+scikit-learn>=1.4.0
+
+# Visualization & Dashboard
+streamlit>=1.32.0
+plotly>=5.19.0
+matplotlib>=3.8.0
+
+# Industrial OT / OPC-UA
+asyncua>=1.1.5
+
+# Web & Data APIs
+requests>=2.31.0
+
+# Testing
+pytest>=8.0.0
