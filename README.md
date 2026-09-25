@@ -244,7 +244,7 @@ Access the dashboard at `http://localhost:8501` to explore:
 
 ---
 
-## 📁 Repository Structure (Clean Pure Code)
+## 📁 Repository Structure (Pure Codebase)
 
 ```text
 Hydraulic-Pump-Energy-Optimizer/
@@ -252,8 +252,7 @@ Hydraulic-Pump-Energy-Optimizer/
 │   ├── raw_pump_curves.csv         # Bosch Rexroth & Parker operating points
 │   ├── electricity_prices_es.csv   # Spain hourly day-ahead spot prices (ENTSO-E)
 │   ├── fetch_entsoe.py             # ENTSO-E Transparency API client
-│   ├── mock_tariff_fallback.py     # Deterministic Spanish tariff generator
-│   └── sample_demand_profile.csv   # Pre-computed multi-cycle press demand
+│   └── mock_tariff_fallback.py     # Deterministic Spanish tariff generator
 ├── simulator/
 │   ├── __init__.py
 │   └── press_demand.py             # 6-phase press duty cycle simulator + ram physics
@@ -277,19 +276,25 @@ Hydraulic-Pump-Energy-Optimizer/
 │   ├── test_simulator.py           # Unit tests for press cycle continuity & constraints
 │   └── test_optimizer.py           # Unit tests for demand satisfaction & power bounds
 ├── docs/
-│   ├── assets/                     # 300 DPI dark-themed figures for README
-│   │   ├── hpeo_staging_and_power.png
-│   │   ├── pump_efficiency_surfaces.png
-│   │   └── entsoe_tariffs_and_costs.png
-│   └── generate_readme_assets.py   # Script to regenerate all documentation assets
+│   └── assets/                     # Publication-grade figures for documentation
+│       ├── hpeo_staging_and_power.png
+│       ├── pump_efficiency_surfaces.png
+│       └── entsoe_tariffs_and_costs.png
 ├── requirements.txt                # Pinned dependencies
-├── HPEO_Implementation_Plan.md     # Engineering roadmap & phased specifications
-├── LIMITATIONS.md                  # Industrial edge cases & commissioning caveats
-└── README.md                       # Main documentation
+├── LICENSE                         # MIT License
+└── README.md                       # Comprehensive technical documentation
 ```
+
+---
+
+## ⚠️ Industrial Calibration & Commissioning Caveats
+
+1. **Hydraulic Valve Dynamics & S-Curve Filtering:** In physical 280-bar circuits, switching pump check valves or swashing displacements instantaneously induces acoustic water hammer. The Level 1 machine PLC must apply a **50–150 ms S-curve ramp filter** to swashplate proportional valve setpoints to ensure smooth pressure transitions.
+2. **Motor Thermal Runaway Prevention:** 160–250 kW induction motors cannot undergo frequent starts and stops (limited to 2–4 cold starts per hour). During short operational pauses, motors must remain spinning at synchronous speed (1500 rpm) with the swashplate unloaded to **$0^\circ$ neutral displacement**, only de-energizing contactors during prolonged downtime (>3–5 min).
+3. **Safety & Real-Time Isolation:** HPEO operates strictly at **Level 2 (Supervisory Optimization)**. Level 1 machine PLCs (Siemens S7-1500 / Beckhoff TwinCAT) retain absolute authority over hardwired safety interlocks, over-pressure mechanical relief valves, and closed-loop position feedback.
 
 ---
 
 ## ⚖️ License & Integrity
 - Released under the [MIT License](LICENSE).
-- All source code, data ingestion routines, and regression algorithms are 100% self-contained and reproducible.
+- 100% pure, self-contained, reproducible industrial automation code.
