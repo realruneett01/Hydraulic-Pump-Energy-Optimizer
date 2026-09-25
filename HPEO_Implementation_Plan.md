@@ -34,28 +34,28 @@ A standalone, production-grade demonstrator that implements:
 ```mermaid
 flowchart TD
     subgraph Data["1. Data & Specifications"]
-        ENT[ENTSO-E Day-Ahead API<br/>Spain ES Hourly Spot Tariff]
-        DS[Pump Datasheets<br/>Rexroth A4VSO / Parker PV]
+        ENT["ENTSO-E Day-Ahead API<br/>Spain ES Hourly Spot Tariff"]
+        DS["Pump Datasheets<br/>Rexroth A4VSO / Parker PV"]
     end
 
     subgraph Core["2. Modeling & Simulation"]
-        PUMP[Pump Curve Modeling<br/>pumps/pump_model.py<br/>flow + pressure → kW]
-        SIM[Press Demand Simulator<br/>simulator/press_demand.py<br/>6-phase extrusion cycle]
+        PUMP["Pump Curve Modeling<br/>pumps/pump_model.py<br/>flow + pressure -> kW"]
+        SIM["Press Demand Simulator<br/>simulator/press_demand.py<br/>6-phase extrusion cycle"]
     end
 
     subgraph Engine["3. Optimization & Analytics"]
-        OPT[Optimizer Engine<br/>optimizer/optimizer.py<br/>MILP: Min total kW subject to Demand]
-        BENCH[Baseline Benchmark<br/>optimizer/benchmark.py<br/>Naive All-On vs. Optimal Staging]
-        COST[Cost & Tariff Calculator<br/>data/tariff_client.py<br/>kWh/ton, €/hour, Annual Savings]
+        OPT["Optimizer Engine<br/>optimizer/optimizer.py<br/>MILP: Min total kW subject to Demand"]
+        BENCH["Baseline Benchmark<br/>optimizer/benchmark.py<br/>Naive All-On vs. Optimal Staging"]
+        COST["Cost & Tariff Calculator<br/>data/tariff_client.py<br/>kWh/ton, €/hour, Annual Savings"]
     end
 
     subgraph Integration["4. Industrial OT Bridge"]
-        OPC[Async OPC-UA Server<br/>opcua/opcua_server.py<br/>Tags: Staging, Displacements, kW, €]
-        CLIENT[Verification Client<br/>opcua/test_client.py]
+        OPC["Async OPC-UA Server<br/>opcua/opcua_server.py<br/>Tags: Staging, Displacements, kW, €"]
+        CLIENT["Verification Client<br/>opcua/test_client.py"]
     end
 
     subgraph Presentation["5. Executive Dashboard"]
-        DASH[Streamlit Interactive App<br/>dashboard/app.py<br/>KPI Cards | Staging Gantt | Efficiency Maps | ROI]
+        DASH["Streamlit Interactive App<br/>dashboard/app.py<br/>KPI Cards • Staging Gantt • Efficiency Maps • ROI"]
     end
 
     ENT --> COST

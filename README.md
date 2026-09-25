@@ -34,27 +34,27 @@ HPEO is an intelligent supervisory optimization engine that:
 ```mermaid
 flowchart TD
     subgraph Data["1. Engineering Data & Tariffs"]
-        ENT[ENTSO-E Transparency API<br/>Real Spain ES Hourly Spot Prices]
-        DS[Pump Datasheets<br/>Bosch Rexroth A4VSO / Parker PV]
+        ENT["ENTSO-E Transparency API<br/>Real Spain ES Hourly Spot Prices"]
+        DS["Pump Datasheets<br/>Bosch Rexroth A4VSO / Parker PV"]
     end
 
     subgraph Modeling["2. Physics-Informed Modeling"]
-        PUMP[Pump Fleet Efficiency Model<br/>pumps/pump_model.py<br/>2D Surrogate Surfaces]
-        SIM[Extrusion Press Demand Simulator<br/>simulator/press_demand.py<br/>6-Phase Duty Cycle + Tapering]
+        PUMP["Pump Fleet Efficiency Model<br/>pumps/pump_model.py<br/>2D Surrogate Surfaces"]
+        SIM["Extrusion Press Demand Simulator<br/>simulator/press_demand.py<br/>6-Phase Duty Cycle + Tapering"]
     end
 
     subgraph Engine["3. Optimization & Analytics"]
-        OPT[Pump Staging Optimizer<br/>optimizer/optimizer.py<br/>MILP: Min Total kW s.t. Demand]
-        BENCH[Benchmarking & Cost Analytics<br/>optimizer/benchmark.py<br/>Baseline vs. HPEO Staging]
+        OPT["Pump Staging Optimizer<br/>optimizer/optimizer.py<br/>MILP: Min Total kW s.t. Demand"]
+        BENCH["Benchmarking & Cost Analytics<br/>optimizer/benchmark.py<br/>Baseline vs. HPEO Staging"]
     end
 
     subgraph Bridge["4. Industrial OT Communication"]
-        OPC[Async OPC-UA Server<br/>opcua/opcua_server.py<br/>opc.tcp://127.0.0.1:4840]
-        CLIENT[Verification Client<br/>opcua/test_client.py]
+        OPC["Async OPC-UA Server<br/>opcua/opcua_server.py<br/>opc.tcp://127.0.0.1:4840"]
+        CLIENT["Verification Client<br/>opcua/test_client.py"]
     end
 
     subgraph UI["5. Executive & Engineering Dashboard"]
-        DASH[Streamlit Interactive App<br/>dashboard/app.py<br/>Staging Gantt | Efficiency Surfaces | Tariff ROI]
+        DASH["Streamlit Interactive App<br/>dashboard/app.py<br/>Staging Gantt • Efficiency Surfaces • Tariff ROI"]
     end
 
     ENT --> BENCH
