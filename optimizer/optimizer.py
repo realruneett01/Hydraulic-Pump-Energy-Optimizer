@@ -86,27 +86,57 @@ class PumpStagingOptimizer:
         else:
             actual_flow_generated = target_flow
 
-        # Allocate actual_flow_generated across active pumps proportionally to max capacity
-        weights = max_flows / sum_max_flow
-        q_alloc = weights * actual_flow_generated
+        # Candidate 1: split proportionally to max capacity.
+        q_prop = (max_flows / sum_max_flow) * actual_flow_generated
+        # Candidate 2: equal-marginal-power split (water-filling on the fitted quadratic surfaces).
+        q_opt = self._equal_marginal_split(active_ids, min_flows, max_flows, actual_flow_generated, target_pressure)
+
+        q_alloc = q_prop
+        if q_opt is not None:
+            # Rank candidates on the cheap quadratic surface; the proportional split wins ties.
+            def surf(q):
+                return sum(a + b * x + c * x * x for (a, b, c), x in zip(self._last_coefs, np.maximum(lo_q, q)))
+            lo_q = min_flows
+            if surf(q_opt) < surf(q_prop) - 1e-9:
+                q_alloc = q_opt
 
         pump_flows = {}
         pump_powers = {}
         total_p = 0.0
-
         for i, pid in enumerate(active_ids):
-            q_val = float(q_alloc[i])
             # Guarantee flow does not violate min bounds for active pumps
-            q_val = max(min_flows[i], q_val)
+            q_val = max(min_flows[i], float(q_alloc[i]))
             p_val = self.fleet.get_power(pid, q_val, target_pressure)
-            pump_flows[pid] = q_val
-            pump_powers[pid] = p_val
+            pump_flows[pid], pump_powers[pid] = q_val, p_val
             total_p += p_val
 
         # Add the bypass/relief valve throttling dissipation
         total_p += throttling_loss_kw
 
         return True, total_p, pump_flows, pump_powers, throttled_flow, throttling_loss_kw
+
+    def _equal_marginal_split(self, active_ids, lo, hi, total_flow, pressure):
+        """Minimise sum P_i(q_i) s.t. sum q_i = total_flow, lo <= q <= hi, for convex quadratic P_i.
+        Optimum equalises marginal power b_i + 2 c_i q_i across unclamped pumps; found by bisection."""
+        coefs = self._last_coefs = [self.fleet.pumps[pid].power_quadratic(pressure) for pid in active_ids]
+        if any(c <= 1e-12 for _, _, c in coefs):
+            return None  # surface not convex in Q here; keep the proportional split
+        b = np.array([c[1] for c in coefs])
+        c2 = np.array([2 * c[2] for c in coefs])
+
+        def alloc(lam):
+            return np.clip((lam - b) / c2, lo, hi)
+
+        l_lo, l_hi = float((b + c2 * lo).min()) - 1.0, float((b + c2 * hi).max()) + 1.0
+        for _ in range(40):
+            mid = 0.5 * (l_lo + l_hi)
+            if alloc(mid).sum() < total_flow:
+                l_lo = mid
+            else:
+                l_hi = mid
+        q = alloc(0.5 * (l_lo + l_hi))
+        q *= total_flow / q.sum() if q.sum() > 0 else 1.0
+        return np.clip(q, lo, hi) if abs(np.clip(q, lo, hi).sum() - total_flow) < 1e-3 else None
 
     def optimize_step(self, flow_demand_lpm: float, pressure_demand_bar: float) -> StagingDecision:
         """

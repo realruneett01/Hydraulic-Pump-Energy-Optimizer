@@ -45,7 +45,7 @@ $$P_{\text{throttling}} = \frac{\Delta P_{\text{relief}} \cdot Q_{\text{excess}}
 ### The HPEO Solution
 HPEO operates as a **Level 2 Supervisory Optimization Service**:
 1. **Surrogate Efficiency Manifolds:** Fits continuous, differentiable 2D polynomial regression surrogates from manufacturer performance curves ($R^2 > 0.9998$).
-2. **Exact Staging Dispatch:** Enumerates every on/off pump combination ($u_i \in \{0, 1\}$, $2^N-1$ cases), splits flow across the active pumps in proportion to capacity (subject to $\alpha_{\min}$), and picks the lowest-power feasible case. Measured ~1.7 ms mean / <5 ms p99 per decision on a cloud x86 core (not sub-millisecond); bypass dumping is minimised, not guaranteed to be zero.
+2. **Exact Staging Dispatch:** Enumerates every on/off pump combination ($u_i \in \{0, 1\}$, $2^N-1$ cases), splits flow across the active pumps by equalising marginal power on the fitted surfaces (subject to $\alpha_{\min}$; never worse than a capacity-proportional split), and picks the lowest-power feasible case. Measured ~2 ms mean / ~3–5 ms p99 per decision on a cloud x86 core (not sub-millisecond); bypass dumping is minimised, not guaranteed to be zero.
 3. **Spot Tariff Ingestion:** `data/fetch_entsoe.py` can ingest hourly day-ahead prices from the **ENTSO-E Transparency Platform (ES zone)** when an API key is supplied. **The bundled CSV is a synthetic diurnal model, not market data** (see `data/electricity_prices_es.meta.json`).
 4. **Standardized OT Bridge:** Publishes advisory setpoints over an **asynchronous OPC-UA server (IEC 62541)**; the PLC remains in control (see [Plug-and-Play Deployment](#-plug-and-play-deployment)).
 
@@ -104,7 +104,7 @@ regressor.fit(X_poly, y)
 
 ## ⚙️ Mathematical Optimization Formulation
 
-At each control step $t$ with hydraulic demand $(Q_{\text{demand}}, P_{\text{demand}})$, HPEO targets the following mixed-integer dispatch problem. **Implementation note:** it is solved by exhaustive enumeration of the $u_i$ combinations, with $\alpha_i$ fixed by a capacity-proportional flow split rather than optimised jointly, so the result is optimal over staging choices only, not a global optimum over $\alpha_i$. SciPy is not used by the solver.
+At each control step $t$ with hydraulic demand $(Q_{\text{demand}}, P_{\text{demand}})$, HPEO targets the following mixed-integer dispatch problem. **Implementation note:** it is solved by exhaustive enumeration of the $u_i$ combinations, with $\alpha_i$ set by an equal-marginal-power split on the quadratic fit, so it is exact over staging choices and near-optimal (not formally proven optimal, given the physical clamps on the surrogate) over $\alpha_i$. SciPy is not used by the solver.
 
 $$\min_{u_i, \alpha_i} \sum_{i=1}^{N} \left[ u_i \cdot P_{\text{shaft}, i}(\alpha_i \cdot Q_{\text{max}, i}, P_{\text{demand}}) + (1 - u_i) \cdot P_{\text{standby}, i} \right]$$
 
@@ -138,10 +138,10 @@ Simulated (5 seeded press cycles, extrapolated to 5,500 operating hours/year) fo
 | Performance Metric | Conventional Baseline | HPEO Optimized | Net Impact / Delta |
 |---|---|---|---|
 | **Specific Energy Consumption** | 37.0 kWh / metric ton | 34.6 kWh / metric ton | **-2.4 kWh / ton (-6.5%)** |
-| **Annual Electricity Consumption** | 203,500 kWh / year | 144,059 kWh / year | **59,441 kWh / year saved** |
-| **Annual Financial Savings** | Baseline tariff spend | Tariff-optimized dispatch | **€ 3,820.62 / year per press** |
+| **Annual Electricity Consumption** | 203,500 kWh / year | 144,000 kWh / year | **59,500 kWh / year saved** |
+| **Annual Financial Savings** | Baseline tariff spend | Tariff-optimized dispatch | **€ 3,824.38 / year per press** |
 | **CO2 Emissions Avoided** | — | — | **8.3 metric tonnes CO2e / yr** |
-| **Solver latency (measured)** | — | ~1.7 ms mean, <5 ms p99 | Advisory loop, not hard-real-time |
+| **Solver latency (measured)** | — | ~2 ms mean, ~3–5 ms p99 | Advisory loop, not hard-real-time |
 
 ---
 
@@ -327,9 +327,9 @@ Hydraulic-Pump-Energy-Optimizer/
 |---|---|
 | Pump surrogate fit | Verified on 31 hand-compiled datasheet-derived points/pump; R² in-sample, ~2–2.5 % leave-one-pressure-out MAPE. Not checked against a physical pump. |
 | Energy / € savings | **Simulated only.** Baseline is a modelled strawman; tariff is synthetic; no field measurements. |
-| Staging optimality | Optimal over on/off combinations given a capacity-proportional flow split; not jointly optimised over displacements. |
+| Staging optimality | Exact over on/off combinations; displacements by equal-marginal split, checked in tests against 600 random splits. |
 | Sensor input | Verified against a fake OPC-UA PLC only. No physical sensor, serial device, or press has been tested. |
-| Windows / ARM / Docker / systemd | Provided, not executed by the author. |
+| Windows / ARM / Docker / systemd | Provided, not executed. Offline wheel bundles for linux-aarch64, windows-amd64 and windows-arm64 (Python 3.12) were resolved successfully; the systemd unit passes `systemd-analyze verify` apart from its install path; the Docker build could not be completed in the author's sandbox (Docker Hub rate-limit). |
 | Safety | Not a safety function; not certified. See LICENSE §5. |
 
 ---

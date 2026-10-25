@@ -64,3 +64,21 @@ def test_benchmark_positive_energy_savings(benchmark, demand_df):
     assert s["saved_kwh"] > 0.0
     assert s["energy_savings_pct"] > 0.0
     assert s["annual_financial_savings_eur"] > 0.0
+
+
+def test_flow_split_not_beaten_by_random_splits():
+    """The equal-marginal split must not lose to random feasible splits of the same active set."""
+    import numpy as np
+    from optimizer.optimizer import PumpStagingOptimizer
+    opt = PumpStagingOptimizer()
+    rng = np.random.default_rng(0)
+    for q, p in [(300.0, 200.0), (450.0, 250.0), (200.0, 100.0)]:
+        _, best_total, _, _, _, _ = opt._solve_flow_dispatch_for_subset([True, True, True], q, p)
+        hi = np.array([opt.fleet.pumps[i].max_flow_lpm for i in opt.pump_ids])
+        for _ in range(200):
+            w = rng.dirichlet(np.ones(3))
+            qs = np.clip(w * q, 0.2 * hi, hi)
+            if abs(qs.sum() - q) > 1e-6:
+                continue
+            tot = sum(opt.fleet.get_power(i, x, p) for i, x in zip(opt.pump_ids, qs))
+            assert best_total <= tot + 0.05

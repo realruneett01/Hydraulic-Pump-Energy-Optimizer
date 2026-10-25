@@ -68,6 +68,13 @@ class SinglePumpModel:
 
         return float(max(min_physical_power, power_pred))
 
+    def power_quadratic(self, pressure_bar: float):
+        """Coefficients (a, b, c) of the fitted surface P(Q) = a + b*Q + c*Q^2 at a fixed pressure."""
+        p = max(10.0, min(pressure_bar, self.max_pressure_bar * 1.05))
+        w = self.regressor.coef_  # feature order: [1, Q, P, Q^2, Q*P, P^2]
+        a = float(self.regressor.intercept_ + w[0] + w[2] * p + w[5] * p * p)
+        return a, float(w[1] + w[4] * p), float(w[3])
+
     def predict_efficiency(self, flow_lpm: float, pressure_bar: float) -> float:
         """
         Compute overall total efficiency (eta_total = P_hydraulic / P_shaft).
