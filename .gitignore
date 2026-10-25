@@ -40,3 +40,7 @@ htmlcov/
 
 # Streamlit
 .streamlit/
+state/
+wheels/
+.runtime/
+config/hpeo.json

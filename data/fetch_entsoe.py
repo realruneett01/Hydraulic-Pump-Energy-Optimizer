@@ -9,7 +9,7 @@ import datetime
 import requests
 import xml.etree.ElementTree as ET
 import pandas as pd
-from mock_tariff_fallback import generate_spain_tariffs
+from mock_tariff_fallback import generate_spain_tariffs, write_meta
 
 
 def fetch_entsoe_prices(api_key=None, days=30, output_path=None):
@@ -76,6 +76,7 @@ def fetch_entsoe_prices(api_key=None, days=30, output_path=None):
 
         df = pd.DataFrame(records).drop_duplicates(subset=["timestamp_utc"]).sort_values("timestamp_utc")
         df.to_csv(output_path, index=False)
+        write_meta(output_path, source="ENTSO-E Transparency Platform A44 (CC BY 4.0, attribution required)", synthetic=False)
         print(f"[SUCCESS] Downloaded {len(df)} live ENTSO-E hourly price records to {output_path}")
         return df
 

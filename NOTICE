@@ -1,0 +1,13 @@
+HPEO — Third-party notices (these are NOT covered by the HPEO proprietary license)
+
+Python dependencies are installed from PyPI under their own licenses; review before redistributing a
+bundle (the wheels/ folder) to customers. Notable: asyncua (LGPL-3.0), numpy/pandas/scikit-learn/scipy/
+matplotlib (BSD/PSF-style), pyserial (BSD), requests (Apache-2.0), streamlit/plotly (Apache-2.0/MIT).
+Shipping wheels unmodified is generally permitted; you must pass the LGPL terms for asyncua through.
+
+Data:
+ * data/raw_pump_curves.csv — operating points approximated from public manufacturer documentation
+   (Bosch Rexroth RE 92050 A4VSO; Parker HY07-2958 PVplus). Not vendor-certified. Datasheet content
+   remains the property of the manufacturers; obtain their permission before commercial redistribution.
+ * data/electricity_prices_es.csv — currently SYNTHETIC. If replaced with ENTSO-E Transparency
+   Platform data (data/fetch_entsoe.py with an API key), that data is CC BY 4.0 and requires attribution.

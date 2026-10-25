@@ -1,19 +1,21 @@
 <div align="center">
 
 # ⚡ Hydraulic Pump Energy Optimizer (HPEO)
-### Industrial Supervisory Optimization & Real-Time Electricity Tariff Dispatch for Extrusion Press Hydraulic Power Units (HPUs)
+### Industrial Supervisory Optimization & Electricity-Tariff-Aware Dispatch for Extrusion Press Hydraulic Power Units (HPUs)
 
-[![Python 3.11+](https://img.shields.io/badge/Python-3.11%20%7C%203.12%20%7C%203.14-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![Python 3.11+](https://img.shields.io/badge/Python-3.10%2B%20(tested%203.13)-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![OPC-UA IEC 62541](https://img.shields.io/badge/OPC--UA-IEC%2062541-E65100?style=for-the-badge&logo=opcfoundation&logoColor=white)](https://opcfoundation.org/)
-[![Optimization](https://img.shields.io/badge/Solver-SciPy%20MILP%20%3C0.2ms-005C8A?style=for-the-badge&logo=scipy&logoColor=white)](https://scipy.org/)
+[![Optimization](https://img.shields.io/badge/Solver-Exact%20Staging%20Enumeration-005C8A?style=for-the-badge)](#-mathematical-optimization-formulation)
 [![Machine Learning](https://img.shields.io/badge/Surrogate-Scikit--Learn%20Ridge-F7931E?style=for-the-badge&logo=scikitlearn&logoColor=white)](https://scikit-learn.org/)
 [![Dashboard](https://img.shields.io/badge/UI-Streamlit%20Dark-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://streamlit.io/)
-[![Tests](https://img.shields.io/badge/Tests-16%20Passed-10B981?style=for-the-badge&logo=pytest&logoColor=white)](https://pytest.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-gray?style=for-the-badge)](https://opensource.org/licenses/MIT)
+[![Tests](https://img.shields.io/badge/Tests-20%20Passed-10B981?style=for-the-badge&logo=pytest&logoColor=white)](https://pytest.org/)
+[![License: Proprietary](https://img.shields.io/badge/License-Proprietary-red?style=for-the-badge)](LICENSE)
 
 <br>
 
-**A physics-informed supervisory control platform that models empirical 2D efficiency manifolds from manufacturer datasheets (Bosch Rexroth / Parker), eliminates dissipative relief bypass losses via sub-millisecond dynamic staging, and schedules pump dispatch against real European Day-Ahead wholesale electricity spot prices.**
+**A physics-informed supervisory control platform that models empirical 2D efficiency manifolds from manufacturer datasheets (Bosch Rexroth / Parker), reduces modelled relief-bypass losses via dynamic pump staging (~2 ms per decision), and includes a plug-in deployment toolkit that auto-detects sensors, calibrates and pre-flight-checks the target machine.**
+
+> **Status:** simulation-validated research/engineering software. Energy and cost figures below are *modelled* (simulated press cycle, synthetic tariff, modelled baseline) and have **not** been measured on a physical press. See [What is and isn't validated](#-what-is-and-isnt-validated).
 
 </div>
 
@@ -43,21 +45,21 @@ $$P_{\text{throttling}} = \frac{\Delta P_{\text{relief}} \cdot Q_{\text{excess}}
 ### The HPEO Solution
 HPEO operates as a **Level 2 Supervisory Optimization Service**:
 1. **Surrogate Efficiency Manifolds:** Fits continuous, differentiable 2D polynomial regression surrogates from manufacturer performance curves ($R^2 > 0.9998$).
-2. **Sub-Millisecond Mixed-Integer Dispatch:** Dynamically selects discrete on/off pump staging combinations ($u_i \in \{0, 1\}$) and continuous swashplate displacements ($\alpha_i$) in **<0.2 ms**, strictly satisfying demand while eliminating bypass dumping.
-3. **Wholesale Spot Tariff Ingestion:** Ingests hourly day-ahead marginal electricity tariffs from the **ENTSO-E Transparency Platform (Spain ES bidding zone)**.
-4. **Standardized OT Bridge:** Exposes real-time setpoints and telemetry via an **asynchronous OPC-UA server (IEC 62541)** for PLC/SCADA integration.
+2. **Exact Staging Dispatch:** Enumerates every on/off pump combination ($u_i \in \{0, 1\}$, $2^N-1$ cases), splits flow across the active pumps in proportion to capacity (subject to $\alpha_{\min}$), and picks the lowest-power feasible case. Measured ~1.7 ms mean / <5 ms p99 per decision on a cloud x86 core (not sub-millisecond); bypass dumping is minimised, not guaranteed to be zero.
+3. **Spot Tariff Ingestion:** `data/fetch_entsoe.py` can ingest hourly day-ahead prices from the **ENTSO-E Transparency Platform (ES zone)** when an API key is supplied. **The bundled CSV is a synthetic diurnal model, not market data** (see `data/electricity_prices_es.meta.json`).
+4. **Standardized OT Bridge:** Publishes advisory setpoints over an **asynchronous OPC-UA server (IEC 62541)**; the PLC remains in control (see [Plug-and-Play Deployment](#-plug-and-play-deployment)).
 
 ---
 
 ## 📊 Empirical Datasets & Provenance
 
-This project integrates two empirical real-world engineering datasets and a physics-based press cycle generator:
+This project integrates one datasheet-derived pump dataset, one tariff dataset (synthetic by default), and a physics-based press cycle generator:
 
 | # | Dataset | Source / Official Links | Description | Usage in HPEO |
 |---|---|---|---|---|
-| **1** | **European Day-Ahead Electricity Prices** | **[ENTSO-E Transparency Platform](https://transparency.entsoe.eu/)**<br>• Bidding Zone: Spain (`10YES-REE------0`)<br>• Document Type: `A44` (Day-Ahead Prices)<br>• REST API: [ENTSO-E API Guide](https://transparency.entsoe.eu/content/static_content/download?path=/Static%20content/web%20api/Guide.html) | Hourly wholesale electricity spot prices reflecting European marginal generation costs and the midday solar PV depression ("duck curve"). | Pulled by [`data/fetch_entsoe.py`](data/fetch_entsoe.py) into [`data/electricity_prices_es.csv`](data/electricity_prices_es.csv) (721 hourly records). Used to compute hour-by-hour operational savings. |
-| **2** | **Axial Piston Pump Performance Curves** | **1. Bosch Rexroth A4VSO Series:**<br>• Datasheet (RE 92050): [Bosch Rexroth A4VSO Portal](https://www.boschrexroth.com/en/xc/products/product-groups/industrial-hydraulics/pumps/axial-piston-pumps/variable-pumps/a4vso)<br>*(Models A4VSO 250 & A4VSO 180 @ 1500 rpm)*<br><br>**2. Parker Hannifin PVplus Series:**<br>• Catalog (HY07-2958/UK): [Parker PV Series PDF](https://www.parker.com/literature/PMDE/Catalogs/Pumps/PVplus_HY07-2958_UK.pdf)<br>*(Model PV092 @ 1500 rpm)* | Operating points across varying swashplate angles (20% to 100%), pressures (50 to 315 bar), and shaft input power (kW). | Structured in [`data/raw_pump_curves.csv`](data/raw_pump_curves.csv). Used to fit 2D polynomial efficiency surrogates. |
-| **3** | **Press Cycle Hydraulic Demand Profile** | **Physics-Informed Extrusion Duty Cycle**<br>Modeled on 15 MN – 50 MN direct extrusion presses. | Flow, pressure, and ram position vectors across 6 operational phases + dwell, with Gaussian process jitter and isothermal ram speed tapering. | Implemented in [`simulator/press_demand.py`](simulator/press_demand.py) generating [`data/sample_demand_profile.csv`](data/sample_demand_profile.csv) (2,789 time steps). |
+| **1** | **European Day-Ahead Electricity Prices** | **[ENTSO-E Transparency Platform](https://transparency.entsoe.eu/)**<br>• Bidding Zone: Spain (`10YES-REE------0`)<br>• Document Type: `A44` (Day-Ahead Prices)<br>• REST API: [ENTSO-E API Guide](https://transparency.entsoe.eu/content/static_content/download?path=/Static%20content/web%20api/Guide.html) | Hourly wholesale prices with a midday solar "duck curve" shape. | **The committed [`data/electricity_prices_es.csv`](data/electricity_prices_es.csv) (721 rows) is generated by [`data/mock_tariff_fallback.py`](data/mock_tariff_fallback.py) — synthetic, not ENTSO-E data.** [`data/fetch_entsoe.py`](data/fetch_entsoe.py) replaces it with real data when `ENTSOE_API_KEY` is set (CC BY 4.0 attribution applies). |
+| **2** | **Axial Piston Pump Performance Curves** | **1. Bosch Rexroth A4VSO Series:**<br>• Datasheet (RE 92050): [Bosch Rexroth A4VSO Portal](https://www.boschrexroth.com/en/xc/products/product-groups/industrial-hydraulics/pumps/axial-piston-pumps/variable-pumps/a4vso)<br>*(Models A4VSO 250 & A4VSO 180 @ 1500 rpm)*<br><br>**2. Parker Hannifin PVplus Series:**<br>• Catalog (HY07-2958/UK): [Parker PV Series PDF](https://www.parker.com/literature/PMDE/Catalogs/Pumps/PVplus_HY07-2958_UK.pdf)<br>*(Model PV092 @ 1500 rpm)* | Operating points across varying swashplate angles (20% to 100%), pressures (50 to 315 bar), and shaft input power (kW). | Structured in [`data/raw_pump_curves.csv`](data/raw_pump_curves.csv) (31 points per pump; approximated from the public documents, **not vendor-certified**). Used to fit 2D polynomial efficiency surrogates. |
+| **3** | **Press Cycle Hydraulic Demand Profile** | **Physics-Informed Extrusion Duty Cycle**<br>Modeled on 15 MN – 50 MN direct extrusion presses. | Flow, pressure, and ram position vectors across 6 operational phases + dwell, with Gaussian process jitter and isothermal ram speed tapering. | Implemented in [`simulator/press_demand.py`](simulator/press_demand.py); generated on demand (seeded), not stored as a file. |
 
 ---
 
@@ -72,7 +74,9 @@ $$\mathbf{X} = [\text{Flow } (Q, \text{L/min}), \text{Pressure } (P, \text{bar})
   <p><i>Figure 2: Empirical 2D polynomial regression surrogates vs. manufacturer datasheet operating points across varying pressures and flows.</i></p>
 </div>
 
-### Model Accuracy & Fit Metrics (Empirical Validation)
+### Model Accuracy & Fit Metrics
+
+> The table below is **in-sample** (6 coefficients fitted to 31 points per pump), so it measures curve-fit quality, not predictive accuracy. `python -m deploy doctor` additionally reports **leave-one-pressure-out** MAPE (currently 2.0–2.5 %), the more honest figure, and gates deployment on it.
 
 | Pump Unit | Model | Displacement | $R^2$ Score | MAPE (% Error) | Model Accuracy | Mean Absolute Error (MAE) | Root Mean Sq. Error (RMSE) |
 |---|---|---|---|---|---|---|---|
@@ -100,7 +104,7 @@ regressor.fit(X_poly, y)
 
 ## ⚙️ Mathematical Optimization Formulation
 
-At each control step $t$ with hydraulic demand $(Q_{\text{demand}}, P_{\text{demand}})$, HPEO solves a mixed-integer constrained dispatch problem:
+At each control step $t$ with hydraulic demand $(Q_{\text{demand}}, P_{\text{demand}})$, HPEO targets the following mixed-integer dispatch problem. **Implementation note:** it is solved by exhaustive enumeration of the $u_i$ combinations, with $\alpha_i$ fixed by a capacity-proportional flow split rather than optimised jointly, so the result is optimal over staging choices only, not a global optimum over $\alpha_i$. SciPy is not used by the solver.
 
 $$\min_{u_i, \alpha_i} \sum_{i=1}^{N} \left[ u_i \cdot P_{\text{shaft}, i}(\alpha_i \cdot Q_{\text{max}, i}, P_{\text{demand}}) + (1 - u_i) \cdot P_{\text{standby}, i} \right]$$
 
@@ -124,12 +128,12 @@ Where:
 
 <div align="center">
   <img src="docs/assets/entsoe_tariffs_and_costs.png" width="95%" alt="ENTSO-E Electricity Spot Tariffs and Economic Savings"/>
-  <p><i>Figure 3: Real ENTSO-E Day-Ahead hourly spot electricity tariffs for Spain (ES) showing the solar PV "duck curve", paired with the instantaneous cost reduction rate (€/hr) and cumulative financial gain.</i></p>
+  <p><i>Figure 3: Hourly spot tariffs for Spain (ES) showing the solar PV "duck curve" (synthetic dataset unless replaced by a real ENTSO-E pull), paired with the instantaneous cost reduction rate (€/hr) and cumulative financial gain.</i></p>
 </div>
 
 ### Industrial Benchmark Summary (3-Shift Extrusion Press)
 
-Benchmarked against a continuous 3-shift operation (5,500 operating hours/year) on a 25 MN extrusion press running EN AW-6082 alloy:
+Simulated (5 seeded press cycles, extrapolated to 5,500 operating hours/year) for a 25 MN press, EN AW-6082 alloy. **Modelled, not measured.** The "conventional baseline" is our own model of an all-pumps-on, 220 bar common-rail system; real plants vary, and the € figure uses the synthetic tariff:
 
 | Performance Metric | Conventional Baseline | HPEO Optimized | Net Impact / Delta |
 |---|---|---|---|
@@ -137,7 +141,7 @@ Benchmarked against a continuous 3-shift operation (5,500 operating hours/year) 
 | **Annual Electricity Consumption** | 203,500 kWh / year | 144,059 kWh / year | **59,441 kWh / year saved** |
 | **Annual Financial Savings** | Baseline tariff spend | Tariff-optimized dispatch | **€ 3,820.62 / year per press** |
 | **CO2 Emissions Avoided** | — | — | **8.3 metric tonnes CO2e / yr** |
-| **Peak Solver Execution Latency** | — | **< 0.20 ms** | **Deterministic PLC Ready** |
+| **Solver latency (measured)** | — | ~1.7 ms mean, <5 ms p99 | Advisory loop, not hard-real-time |
 
 ---
 
@@ -155,8 +159,8 @@ HPEO is designed to deploy seamlessly into standard automation architectures as 
 +--------------------------------------------------------------------------+
 |                 HPEO Supervisory Optimization Service                    |
 |  - Ingests ENTSO-E Day-Ahead spot tariffs via REST API                   |
-|  - Solves MILP pump dispatch & swashplate angles (<0.2 ms latency)       |
-|  - Asynchronous OPC-UA Server (IEC 62541) on opc.tcp://127.0.0.1:4840    |
+|  - Solves pump staging & swashplate setpoints (~2 ms per decision)       |
+|  - Asynchronous OPC-UA Server (IEC 62541) on opc.tcp://0.0.0.0:4840      |
 +--------------------------------------------------------------------------+
                                      ^
                                      |  (Deterministic Fieldbus / OPC-UA)
@@ -179,6 +183,8 @@ HPEO is designed to deploy seamlessly into standard automation architectures as 
 
 ### Standardized OPC-UA Node Namespace (`HPEO_Press_HPU`)
 
+Two servers exist. `python -m deploy start` (the **live supervisor**) serves `PressTelemetry/{DemandFlow_LPM,DemandPressure_Bar}`, `PumpSetpoints/{StagingCode,OptimizedPower_KW,<pump>/…}` and `System/{SensorsHealthy,IsSimulation,Heartbeat}` from real sensor input. The older `opcua/opcua_server.py` is a **demo replay of simulated data** and does not read any sensor; the table below describes that demo namespace.
+
 | Folder | Node Identifier | Data Type | Engineering Units | Description |
 |---|---|---|---|---|
 | `PressTelemetry` | `PressPhase` | `String` | — | Current cycle operational phase |
@@ -191,23 +197,37 @@ HPEO is designed to deploy seamlessly into standard automation architectures as 
 
 ---
 
-## 🚀 Quickstart & Installation
+## 🔌 Plug-and-Play Deployment
+
+Copy the project folder (optionally with offline `wheels/`) to a USB stick, plug it into the target computer and run one launcher:
+
+| Target | Command (from the stick) |
+|---|---|
+| Linux / macOS, x86-64 or ARM | `./start_hpeo.sh` |
+| Windows (x64 / ARM64) | `start_hpeo.bat` |
+| Docker (amd64 / arm64) | `docker build -t hpeo . && docker run --rm -p 4840:4840 hpeo start` |
+| systemd | `sudo deploy/systemd/install.sh` |
+
+What happens automatically on first run:
+1. **Environment** is built on the local disk (USB media is often `noexec`/FAT), from `wheels/<os-arch>/` if present, else the internet. Build offline wheels once with `python deploy/make_bundle.py --python 3.12`.
+2. **Detection** (`python -m deploy detect|configure`): host OS/arch, serial/USB adapters, and — if you pass `--opcua opc.tcp://<plc>:4840` — browses the PLC and picks the flow and pressure nodes by name. It never scans networks and never guesses live wiring: with nothing found it stays in **simulation** and says so.
+3. **Calibration & pre-flight** (`python -m deploy doctor`, run automatically by `start`): dependency and port checks; refits the pump models and requires R² ≥ 0.995 and leave-one-pressure-out MAPE ≤ 5 %; sweeps the solver for feasibility and latency (p99 ≤ 10 ms); then samples the live sensors **with the press idle** and checks they are numeric, not frozen, and near zero, storing zero offsets. Result is written to `state/calibration_profile.json` with an integrity digest (set `HPEO_SEAL_KEY` to make it an HMAC), and is invalidated if the pump data, host, mode or age (30 days) changes.
+4. **Gate**: `start` refuses to run on a failed pre-flight (exit 2) or without verified live sensors (exit 3) unless `--allow-simulation` is given. If sensors fault for 3 consecutive samples at runtime, HPEO publishes `SENSOR_FAULT_PLC_AUTHORITY` and `SensorsHealthy=false` so the PLC reverts to its own staging.
+
+**Supported sensor inputs:** a PLC/gateway over OPC-UA, or a serial/USB device streaming ASCII lines `flow_lpm,pressure_bar`. Modbus, 4–20 mA DAQs and other fieldbuses need an adapter (add a class to `deploy/sources.py`). HPEO outputs are **advisory**; it does not write to valves or drives.
+
+**Test status:** validated in a Linux x86-64 sandbox (pytest incl. a fake PLC, launcher build from scratch, live OPC-UA read-back). The Windows, ARM, Docker and systemd paths are provided but were **not executed** by the author — run the verification commands you were given before relying on them.
+
+---
+
+## 🚀 Developer Quickstart
 
 ### 1. Environment Setup
 ```bash
-# Clone repository
-git clone https://github.com/realruneett01/Hydraulic-Pump-Energy-Optimizer.git
+git clone <your private repository URL>
 cd Hydraulic-Pump-Energy-Optimizer
-
-# Create and activate virtual environment
 python -m venv venv
-
-# Windows:
-.\venv\Scripts\activate
-# Linux / macOS:
-source venv/bin/activate
-
-# Install pure dependencies
+# Windows: .\venv\Scripts\activate     Linux/macOS: source venv/bin/activate
 pip install -r requirements.txt
 ```
 
@@ -215,7 +235,7 @@ pip install -r requirements.txt
 ```bash
 pytest tests/ -v
 ```
-*Output: 16 passed tests verifying pump surrogate monotonicity, demand profile bounds, and optimization constraints.*
+*Output: 20 passed tests covering pump surrogate monotonicity, demand profile bounds, optimization constraints, and the deployment calibration gate (sensor auto-detection, non-idle/frozen-sensor rejection, tamper detection).*
 
 ### 3. Run Benchmark Analytics
 ```bash
@@ -225,7 +245,7 @@ python optimizer/benchmark.py
 ### 4. Test Industrial OPC-UA Server & Client
 In **Terminal 1** (start server):
 ```bash
-python opcua/opcua_server.py
+python opcua/opcua_server.py   # demo replay of SIMULATED data
 ```
 In **Terminal 2** (start monitoring client):
 ```bash
@@ -244,7 +264,7 @@ Access the dashboard at `http://localhost:8501` to explore:
 
 ---
 
-## 📁 Repository Structure (Pure Codebase)
+## 📁 Repository Structure 
 
 ```text
 Hydraulic-Pump-Energy-Optimizer/
@@ -261,7 +281,7 @@ Hydraulic-Pump-Energy-Optimizer/
 │   └── pump_model.py               # 2D polynomial regression efficiency surrogates
 ├── optimizer/
 │   ├── __init__.py
-│   ├── optimizer.py                # Mixed-integer constrained dispatch solver (<0.2 ms)
+│   ├── optimizer.py                # Exact staging-enumeration dispatch solver (~2 ms)
 │   └── benchmark.py                # Comparative benchmark engine & cost evaluator
 ├── opcua/
 │   ├── __init__.py
@@ -270,18 +290,24 @@ Hydraulic-Pump-Energy-Optimizer/
 ├── dashboard/
 │   ├── __init__.py
 │   └── app.py                      # Multi-tab Streamlit engineering dashboard
+├── deploy/                         # Plug-and-play toolkit: hardware.py, config.py, calibrate.py, sources.py, runtime.py, make_bundle.py, systemd/
 ├── tests/
 │   ├── __init__.py
 │   ├── test_pumps.py               # Unit tests for surrogate monotonicity & MAPE < 5%
 │   ├── test_simulator.py           # Unit tests for press cycle continuity & constraints
-│   └── test_optimizer.py           # Unit tests for demand satisfaction & power bounds
+│   ├── test_optimizer.py           # Unit tests for demand satisfaction & power bounds
+│   └── test_deploy.py              # Calibration gate tests against a fake PLC
 ├── docs/
 │   └── assets/                     # Publication-grade figures for documentation
 │       ├── hpeo_staging_and_power.png
 │       ├── pump_efficiency_surfaces.png
 │       └── entsoe_tariffs_and_costs.png
-├── requirements.txt                # Pinned dependencies
-├── LICENSE                         # MIT License
+├── start_hpeo.sh / start_hpeo.bat  # USB launchers
+├── Dockerfile                      # amd64/arm64 image
+├── requirements.txt                # Dev dependencies (minimum versions, not pinned)
+├── requirements-runtime.txt        # Field-deployment dependencies
+├── NOTICE                          # Third-party data/library notices
+├── LICENSE                         # Proprietary, all rights reserved
 └── README.md                       # Comprehensive technical documentation
 ```
 
@@ -295,6 +321,19 @@ Hydraulic-Pump-Energy-Optimizer/
 
 ---
 
-## ⚖️ License & Integrity
-- Released under the [MIT License](LICENSE).
-- 100% pure, self-contained, reproducible industrial automation code.
+## ✅ What is and isn't validated
+
+| Claim | Status |
+|---|---|
+| Pump surrogate fit | Verified on 31 hand-compiled datasheet-derived points/pump; R² in-sample, ~2–2.5 % leave-one-pressure-out MAPE. Not checked against a physical pump. |
+| Energy / € savings | **Simulated only.** Baseline is a modelled strawman; tariff is synthetic; no field measurements. |
+| Staging optimality | Optimal over on/off combinations given a capacity-proportional flow split; not jointly optimised over displacements. |
+| Sensor input | Verified against a fake OPC-UA PLC only. No physical sensor, serial device, or press has been tested. |
+| Windows / ARM / Docker / systemd | Provided, not executed by the author. |
+| Safety | Not a safety function; not certified. See LICENSE §5. |
+
+---
+
+## ⚖️ License
+
+**Proprietary — all rights reserved.** See [LICENSE](LICENSE). Third-party libraries and datasets keep their own terms ([NOTICE](NOTICE)). Earlier commits were published under MIT; that grant is limited to those snapshots.

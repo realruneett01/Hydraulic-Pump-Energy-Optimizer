@@ -1,0 +1,27 @@
+[Unit]
+Description=HPEO hydraulic pump supervisory optimizer
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=hpeo
+Group=hpeo
+SupplementaryGroups=dialout
+WorkingDirectory=/opt/hpeo
+Environment=HPEO_STATE_DIR=/var/lib/hpeo
+# `start` re-runs calibration and refuses to run if pre-flight fails.
+ExecStart=/opt/hpeo/.venv/bin/python -m deploy start
+Restart=on-failure
+RestartSec=10
+# exit codes 2/3 = pre-flight failed / no live sensors: do not restart-loop on those
+RestartPreventExitStatus=2 3
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/hpeo /opt/hpeo/config
+StateDirectory=hpeo
+
+[Install]
+WantedBy=multi-user.target

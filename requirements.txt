@@ -15,5 +15,8 @@ asyncua>=1.1.5
 # Web & Data APIs
 requests>=2.31.0
 
+# Serial sensor adapters
+pyserial>=3.5
+
 # Testing
 pytest>=8.0.0

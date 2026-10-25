@@ -1,21 +1,89 @@
-MIT License
+HPEO PROPRIETARY SOFTWARE LICENSE AND NOTICE — ALL RIGHTS RESERVED
 
-Copyright (c) 2026 realruneett01
+Copyright (c) 2026 realruneett01 [INSERT FULL LEGAL NAME / COMPANY]. All rights reserved.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+*** THIS IS NOT OPEN-SOURCE SOFTWARE. ***
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+1. NO LICENSE GRANTED BY DEFAULT.
+   The Hydraulic Pump Energy Optimizer ("HPEO"), including all source code, object code, models,
+   calibration logic, configuration formats, data compilations, documentation, figures and any
+   derivative of the foregoing (the "Software"), is the confidential and proprietary property of the
+   Owner. Access to, possession of, or receipt of a copy of the Software, by any means (including
+   by theft, leak, repository mirroring, or through a USB deployment medium), grants NO right,
+   title, license or permission of any kind, express or implied, by estoppel or otherwise. The only
+   rights that exist are those granted in a separate WRITTEN agreement signed by the Owner (a
+   "Written Agreement"). Without one, you must not use the Software and must delete all copies.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+2. PRIOR VERSIONS. Earlier commits of this repository were published under the MIT License.
+   That grant applied only to those specific earlier snapshots, was non-retroactive as to this
+   and later versions, and does not extend to any code, file or change introduced on or after the
+   date of this notice. Nothing in this notice purports to revoke rights lawfully obtained under
+   the MIT License in copies already received.
+
+3. RESTRICTIONS (apply even under a Written Agreement unless it expressly says otherwise).
+   You shall not, and shall not permit any third party to: (a) copy, reproduce, mirror, fork,
+   publish, post, sell, rent, lease, lend, sublicense, distribute or transfer the Software;
+   (b) modify, adapt, translate or create derivative works; (c) decompile, disassemble, reverse
+   engineer, or attempt to extract algorithms, model coefficients, calibration methods or trade
+   secrets, except to the extent such restriction is prohibited by mandatory law; (d) use the
+   Software, its outputs or its structure to build, train, fine-tune, benchmark-for-publication or
+   improve any competing product, machine-learning or AI system; (e) offer the Software, or any
+   function of it, as a hosted, managed, SaaS or service-bureau offering; (f) remove, alter or
+   obscure any notice, mark or attribution; (g) circumvent any calibration, pre-flight, integrity
+   or access control; (h) publish performance, savings or benchmark results without prior written
+   consent; (i) use the Software in violation of any applicable law, including export-control and
+   sanctions law.
+
+4. CONFIDENTIALITY. The Software and all non-public information about it are trade secrets and
+   Confidential Information of the Owner. Keep them in strict confidence, protect them with at
+   least reasonable care, disclose them to no one, and use them solely as permitted by a Written
+   Agreement. These duties survive for as long as the information remains a trade secret.
+
+5. SAFETY-CRITICAL USE DISCLAIMER. The Software is an ADVISORY, Level-2 supervisory tool. It is NOT
+   a safety function, NOT a safety-rated controller, and NOT certified to IEC 61508, ISO 13849,
+   IEC 62061 or any similar standard. It MUST NOT be relied on for protection of persons or
+   machinery. Independent, hardwired, certified safety interlocks, relief valves and PLC safety
+   logic are the sole responsibility of the operator and must remain in full authority at all
+   times. Commissioning, calibration and use of the Software on real hydraulic equipment is
+   undertaken entirely at the operator's own risk by suitably qualified personnel.
+
+6. NO WARRANTY. TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THE SOFTWARE IS PROVIDED "AS IS"
+   AND "AS AVAILABLE", WITH ALL FAULTS, AND THE OWNER DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+   EXPRESS, IMPLIED OR STATUTORY, INCLUDING MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
+   ACCURACY, ENERGY-SAVINGS OR FINANCIAL OUTCOMES, NON-INFRINGEMENT, AND UNINTERRUPTED OR
+   ERROR-FREE OPERATION. Any figures about energy, cost or emissions are modelled estimates and not
+   guarantees.
+
+7. LIMITATION OF LIABILITY. TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THE OWNER SHALL NOT
+   BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY OR PUNITIVE DAMAGES,
+   OR FOR LOSS OF PROFIT, REVENUE, DATA, PRODUCTION, GOODWILL OR EQUIPMENT, OR FOR PERSONAL INJURY
+   OR PROPERTY DAMAGE ARISING FROM USE OR INABILITY TO USE THE SOFTWARE, UNDER ANY THEORY OF
+   LIABILITY, EVEN IF ADVISED OF THEIR POSSIBILITY. THE OWNER'S TOTAL AGGREGATE LIABILITY SHALL NOT
+   EXCEED THE FEES ACTUALLY PAID TO THE OWNER FOR THE SOFTWARE IN THE 12 MONTHS BEFORE THE CLAIM
+   (OR USD 100 IF NONE). NOTHING HERE EXCLUDES LIABILITY THAT CANNOT BE EXCLUDED BY LAW (INCLUDING
+   FOR FRAUD, OR DEATH/PERSONAL INJURY CAUSED BY THE OWNER'S GROSS NEGLIGENCE WHERE SO REQUIRED).
+
+8. INDEMNITY. You shall defend, indemnify and hold harmless the Owner from all claims, losses,
+   liabilities, damages, costs and expenses (including reasonable legal fees) arising from your
+   use or misuse of the Software, your breach of this license, or your equipment, process or
+   safety design.
+
+9. TERMINATION; REMEDIES. Any breach terminates all rights automatically and immediately. On
+   termination or demand you must cease all use and permanently destroy all copies and
+   derivatives and certify destruction in writing. You acknowledge that breach of Sections 3 or 4
+   would cause irreparable harm for which damages are inadequate, and the Owner is entitled to
+   injunctive and equitable relief without bond, in addition to all other remedies at law.
+
+10. THIRD-PARTY MATERIALS. This license covers only the Owner's original work. Third-party
+    libraries, datasets and trademarks remain under their own terms (see NOTICE) and are not
+    relicensed or claimed by the Owner. Product names (Bosch Rexroth, Parker, Siemens, Beckhoff,
+    ENTSO-E, etc.) are trademarks of their owners; no affiliation or endorsement is implied.
+
+11. GOVERNING LAW; VENUE. This license is governed by the laws of [INSERT JURISDICTION], excluding
+    its conflict-of-laws rules and the UN Convention on Contracts for the International Sale of
+    Goods. The courts of [INSERT CITY/COUNTRY] have exclusive jurisdiction, and you submit to them.
+
+12. GENERAL. If any provision is unenforceable it is limited to the minimum extent necessary and
+    the remainder stays in force. No waiver is effective unless in writing. You may not assign this
+    license; the Owner may. This notice and any Written Agreement are the entire agreement on the
+    subject. All rights not expressly granted are reserved.

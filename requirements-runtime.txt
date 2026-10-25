@@ -1,0 +1,8 @@
+# Minimal field-deployment set (no dashboard / test tooling). Used by launchers, Docker and systemd.
+numpy>=1.26.0
+pandas>=2.2.0
+scikit-learn>=1.4.0
+matplotlib>=3.8.0
+asyncua>=1.1.5
+pyserial>=3.5
+requests>=2.31.0

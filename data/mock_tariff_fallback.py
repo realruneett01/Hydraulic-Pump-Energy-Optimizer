@@ -7,10 +7,17 @@ Models authentic Spanish OMIE / ENTSO-E hourly spot price dynamics:
 - Evening peak: ~95-145 €/MWh
 """
 
+import json
 import os
 import datetime
 import numpy as np
 import pandas as pd
+
+
+def write_meta(csv_path, source, synthetic):
+    """Sidecar provenance file so downstream checks can tell synthetic prices from real ones."""
+    with open(os.path.splitext(csv_path)[0] + ".meta.json", "w") as f:
+        json.dump({"source": source, "synthetic": synthetic}, f, indent=2)
 
 
 def generate_spain_tariffs(days=30, output_path=None):
@@ -59,6 +66,7 @@ def generate_spain_tariffs(days=30, output_path=None):
     })
     
     df.to_csv(output_path, index=False)
+    write_meta(output_path, source="synthetic diurnal model (NOT market data)", synthetic=True)
     print(f"Generated {len(df)} hourly tariff records -> {output_path}")
     print(f"Summary: Min={df['price_eur_per_mwh'].min():.2f} €/MWh, "
           f"Mean={df['price_eur_per_mwh'].mean():.2f} €/MWh, "

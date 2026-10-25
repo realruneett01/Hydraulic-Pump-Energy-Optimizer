@@ -1,0 +1,7 @@
+.git
+venv
+state
+wheels
+__pycache__
+*.pyc
+docs
